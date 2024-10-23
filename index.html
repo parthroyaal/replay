@@ -905,25 +905,16 @@ function unixToMillis(unixTime) {
     });
 
     function updatePrices() {
-      if (!isPaused) {
+        if (!isPaused) {
+            // Find the closest bar to the current lastUpdateTime
+            const closestBar = findClosestBar(lastUpdateTime);
 
-        let closestBar = null;
-        let minTimeDiff = Infinity;
-
-        for (const dataSource in allBars) {
-          for (let i = 0; i < allBars[dataSource].length; i++) {
-            const timeDiff = Math.abs(allBars[dataSource][i].time - lastUpdateTime);
-            if (timeDiff < minTimeDiff) {
-              minTimeDiff = timeDiff;
-              closestBar = allBars[dataSource][i];
+            if (closestBar) {
+            // Update lastUpdateTime to the timestamp of the found bar
+            lastUpdateTime = closestBar.time;
+            // Update the price widget with the closest bar data
+            updatePriceWidget(closestBar); 
             }
-          }
-        }
-
-        if (closestBar) {
-          lastUpdateTime = closestBar.time;
-          updatePriceWidget(closestBar);
-        }
 
         if (priceWidgetVisible) {
           toggleWidget('price-widget');
@@ -934,16 +925,17 @@ function unixToMillis(unixTime) {
 
 
     function updatePriceWidget(barData) {
-      const currentTime = new Date(barData.time).toLocaleTimeString();
-      let callPrice = 0;
+        const currentTime = new Date(barData.time).toLocaleTimeString();
+        let callPrice = 0;
 
-      if (allBars.leftTop.some(bar => bar.time === barData.time)) {
-        callPrice = barData.close;
-      }
+        if (allBars.leftTop.some(bar => bar.time === barData.time)) {
+            callPrice = barData.close;
+        }
 
-      document.getElementById('currentTime').innerText = currentTime;
-      document.getElementById('callPrice').innerText = callPrice.toFixed(2);
-      updatePercentageChange(callPrice, 'callChange', callEntryPrice);
+        document.getElementById('currentTime').innerText = currentTime;
+        document.getElementById('callPrice').innerText = callPrice.toFixed(2);
+        updatePercentageChange(callPrice, 'callChange', callEntryPrice);
+
 
       if (priceWidgetVisible) {
         document.getElementById('price-widget-content').innerHTML = document.getElementById('priceTable').outerHTML;
@@ -1102,4 +1094,6 @@ function unixToMillis(unixTime) {
 </body>
 
 </html>
-<!-- 2024-10-18 10:00:01 -->
+<!-- 
+2024-10-23 09:15:00
+-->
