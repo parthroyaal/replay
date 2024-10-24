@@ -224,10 +224,10 @@
           <tr>
             <td class="border px-4 py-2"></td>
             <td class="border px-4 py-2">
-              <!-- <button class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-400"
+              <button class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-400"
                 onclick="buy('callPrice')">Buy</button>
               <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-400"
-                onclick="sell('callPrice')">Sell</button> -->
+                onclick="sell('callPrice')">Sell</button>
               <div id="callLog" class="mt-2 text-sm text-gray-600"></div>
               <div id="callChange" class="text-sm text-gray-500">Change: 0%</div>
             </td>
@@ -301,36 +301,36 @@ document.addEventListener('DOMContentLoaded', function() {
     
 // MONGO
 
-    // Update the play button icon based on state
-    function updatePlayButtonIcon() {
-        const svg = playButton.querySelector('svg');
-        if (isPaused) {
-            svg.innerHTML = '<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>';
-        } else {
-            svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line>';
-        }
-    }
+    // // Update the play button icon based on state
+    // function updatePlayButtonIcon() {
+    //     const svg = playButton.querySelector('svg');
+    //     if (isPaused) {
+    //         svg.innerHTML = '<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>';
+    //     } else {
+    //         svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line>';
+    //     }
+    // }
     
 
 
 
-// Play button handler
-playButton.addEventListener('click', function() {
-    isPaused = !isPaused;
-    console.log("Streaming and updating paused:", isPaused);
-    updatePlayButtonIcon();
+// // Play button handler
+// playButton.addEventListener('click', function() {
+//     isPaused = !isPaused;
+//     console.log("Streaming and updating paused:", isPaused);
+//     updatePlayButtonIcon();
     
-    if (isPaused) {
-        clearInterval(priceUpdateInterval);
-    } else {
-        // Reset lastUpdateTime to current time when resuming
-        lastUpdateTime = Date.now();
-        // Immediately update prices
-        updatePrices();
-        // Restart the interval
-        priceUpdateInterval = setInterval(updatePrices, 1000);
-    }
-});
+//     if (isPaused) {
+//         clearInterval(priceUpdateInterval);
+//     } else {
+//         // Reset lastUpdateTime to current time when resuming
+//         lastUpdateTime = Date.now();
+//         // Immediately update prices
+//         updatePrices();
+//         // Restart the interval
+//         priceUpdateInterval = setInterval(updatePrices, 1000);
+//     }
+// });
 
     // Skip button handler
     skipButton.addEventListener('click', function() {
@@ -918,7 +918,34 @@ function unixToMillis(unixTime) {
 
 
     // MONGO
- 
+    // Update the play button icon based on state
+    function updatePlayButtonIcon() {
+        const svg = playButton.querySelector('svg');
+        if (isPaused) {
+            svg.innerHTML = '<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>';
+        } else {
+            svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"></line><line x1="14" y1="15" x2="14" y2="9"></line>';
+        }
+    }
+    
+    
+// Play button handler
+playButton.addEventListener('click', function() {
+    isPaused = !isPaused;
+    console.log("Streaming and updating paused:", isPaused);
+    updatePlayButtonIcon();
+    
+    if (isPaused) {
+        clearInterval(priceUpdateInterval);
+    } else {
+        // Reset lastUpdateTime to current time when resuming
+        lastUpdateTime = Date.now();
+        // Immediately update prices
+        updatePrices();
+        // Restart the interval
+        priceUpdateInterval = setInterval(updatePrices, 1000);
+    }
+});
 
 
   // 0mongo
