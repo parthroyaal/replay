@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const playbackSpeedSelect = document.getElementById('playbackSpeed');
     const cumulativeProfitDisplay = document.getElementById('cumulativeProfitDisplay');
     
+    let cumulativeProfit = 0;
 
     
 
@@ -293,7 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-
+    function updateCumulativeProfitDisplay() {
+        cumulativeProfitDisplay.textContent = `Profit: $${cumulativeProfit.toFixed(2)}`;
+    }
 
     // Play button handler
     playButton.addEventListener('click', function() {
@@ -339,60 +342,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Sell executed at:", currentPrice);
     }
 });
-
-
-
-
-// ... (existing code) ...
-
-let cumulativeProfit = 0; 
-let cumulativePercentageChange = 0;
-
-// ... (inside the flattenButton event listener) ...
-
-flattenButton.addEventListener('click', function() {
-    if (callTradeOpen) {
-        const currentPrice = parseFloat(document.getElementById('callPrice').innerText);
-        sell('callPrice');
-        console.log("Position flattened at:", currentPrice);
-
-        // Get the percentage change from the last row in the Trade Log
-        const lastRow = document.getElementById(`trade-${tradeCount}`);
-        const tradeProfitPercentage = parseFloat(lastRow.cells[6].innerText.replace('%', '')); // Remove '%'
-
-        cumulativeProfit += (currentPrice - callEntryPrice); 
-        cumulativePercentageChange += parseFloat(tradeProfitPercentage); 
-
-        // Update the display
-        updateCumulativeProfitDisplay(tradeProfitPercentage, cumulativePercentageChange); 
-    }
-});
-
-
-function updateCumulativeProfitDisplay(tradeProfitPercentage, cumulativePercentageChange) {
-    cumulativeProfitDisplay.textContent = 
-        `Profit:  
-         (Trade Change: ${tradeProfitPercentage}%, Cumulative Change: ${cumulativePercentageChange.toFixed(2)}%)`;
-}
-
-
-    // // Flatten button handler
-    // flattenButton.addEventListener('click', function() {
-    //     if (callTradeOpen) {
-    //         const currentPrice = parseFloat(document.getElementById('callPrice').innerText);
-    //         sell('callPrice');
-    //         console.log("Position flattened at:", currentPrice);
+    // Flatten button handler
+    flattenButton.addEventListener('click', function() {
+        if (callTradeOpen) {
+            const currentPrice = parseFloat(document.getElementById('callPrice').innerText);
+            sell('callPrice');
+            console.log("Position flattened at:", currentPrice);
             
-    //         // Calculate profit/loss
-    //         const tradeProfit = (currentPrice - callEntryPrice);
-    //         cumulativeProfit += tradeProfit;
-    //         updateCumulativeProfitDisplay();
-    //     }
-    // });
+            // // Calculate profit/loss
+            // const tradeProfit = (currentPrice - callEntryPrice);
+            // cumulativeProfit += tradeProfit;
+            // updateCumulativeProfitDisplay();
+        }
+    });
 
-    // function updateCumulativeProfitDisplay() {
-    //     cumulativeProfitDisplay.textContent = `Profit: $${cumulativeProfit.toFixed(2)}`;
-    // }
     // Playback speed handler
     playbackSpeedSelect.addEventListener('change', function() {
         const speed = parseFloat(this.value);
@@ -1045,46 +1008,42 @@ function unixToMillis(unixTime) {
                 }
                 }
                 
-// Also update the addTradeLog function to maintain consistency
-function addTradeLog(entryType, entryPrice, currentTime) {
-  tradeCount++;
+    function addTradeLog(entryType, entryPrice, currentTime) {
+      tradeCount++;
 
-  const newRow = document.createElement('tr');
-  newRow.innerHTML = `
-    <td class="border px-4 py-2">${tradeCount}</td>
-    <td class="border px-4 py-2">${currentTime}</td> 
-    <td class="border px-4 py-2">-</td>  <!-- Exit Time -->
-    <td class="border px-4 py-2">${entryType}</td> 
-    <td class="border px-4 py-2">$${entryPrice.toFixed(2)}</td>
-    <td class="border px-4 py-2">-</td>  <!-- Exit Price -->
-    <td class="border px-4 py-2">-</td>  <!-- Change % -->
-  `;
-  newRow.id = `trade-${tradeCount}`;
-  document.getElementById('tradeLogBody').appendChild(newRow);
-  
-  if (logWidgetVisible) {
-    toggleWidget('log-widget');
-    toggleWidget('log-widget');
-  }
-}
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td class="border px-4 py-2">${tradeCount}</td>
+        <td class="border px-4 py-2">${currentTime}</td> 
+        <td class="border px-4 py-2">-</td>  <!-- Initially empty Exit Time -->
+        <td class="border px-4 py-2">${entryType}</td> 
+        <td class="border px-4 py-2">$${entryPrice.toFixed(2)}</td>
+        <td class="border px-4 py-2">-</td>
+        <td class="border px-4 py-2">-</td>
+      `;
+      newRow.id = `trade-${tradeCount}`;
+      document.getElementById('tradeLogBody').appendChild(newRow);
+      if (logWidgetVisible) {
+        toggleWidget('log-widget');
+        toggleWidget('log-widget');
+      }
+    }
 
     function updateTradeLog(exitType, exitPrice, percentChange) {
-  const lastRow = document.getElementById(`trade-${tradeCount}`);
-  if (lastRow) {
-    // Get the current time
-    const exitTime = document.getElementById('currentTime').innerText;
+      const lastRow = document.getElementById(`trade-${tradeCount}`);
+      if (lastRow) {
+        // Get the current time
+        const exitTime = document.getElementById('currentTime').innerText;
 
-    // Update cells with correct column assignments
-    lastRow.cells[2].innerText = exitTime;  // Exit Time
-    lastRow.cells[5].innerText = `$${exitPrice.toFixed(2)}`; // Exit Price
-    lastRow.cells[6].innerText = `${percentChange}%`;  // Change %
-  }
-  
-  if (logWidgetVisible) {
-    toggleWidget('log-widget');
-    toggleWidget('log-widget');
-  }
-}
+        lastRow.cells[4].innerText = `$${exitPrice.toFixed(2)}`;
+        lastRow.cells[5].innerText = `${percentChange}%`;
+        lastRow.cells[2].innerText = exitTime;  // Update Exit Time 
+        if (logWidgetVisible) {
+          toggleWidget('log-widget');
+          toggleWidget('log-widget');
+        }
+      }
+    }
 
     function switchToNextChart() {
       let nextChartId;
