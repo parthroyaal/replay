@@ -19,11 +19,11 @@
 
     .chart {
       width: 100%;
-      height: 100vh; /* Make the chart occupy the full viewport height */
+      height: calc(100vh - 50px);
       /* Adjusted for nav bar height */
       border: 1px solid #ddd;
       box-sizing: border-box;
-      overflow-y: auto; /* Allow scrolling if the content is too tall */
+      overflow: visible;
     }
 
     #formSection {
@@ -38,8 +38,6 @@
       display: none;
       height: 100%;
       overflow: hidden;
-      overflow-y: auto; /* Allow the chart section to scroll vertically if needed */
-
       flex: 1;
       /* Allow the chart section to take up available space */
       display: flex;
