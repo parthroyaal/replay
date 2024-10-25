@@ -323,14 +323,12 @@ playButton.addEventListener('click', function() {
     if (isPaused) {
         clearInterval(priceUpdateInterval);
     } else {
-        // Simulate pressing Alt + "
-        document.dispatchEvent(new KeyboardEvent('keydown', {
-            key: '"',
-            altKey: true,
-            code: 'Quote',
-            bubbles: true,
-            cancelable: true
-        }));
+        // Reset lastUpdateTime to current time when resuming
+        lastUpdateTime = Date.now();
+        // Immediately update prices
+        updatePrices();
+        // Restart the interval
+        priceUpdateInterval = setInterval(updatePrices, 1000);
     }
 });
 
@@ -953,25 +951,59 @@ function unixToMillis(unixTime) {
       };
     });
 
-    function updatePrices() {
-        if (!isPaused) {
-            // Find the closest bar to the current lastUpdateTime
-            // const closestBar = findClosestBar(lastUpdateTime);
-            let closestBar = null;
 
-            if (closestBar) {
+    function findClosestBar(timestamp) {
+    let closestBar = null;
+    let closestDiff = Infinity;
+
+    for (let bar of allBars) {
+        const diff = Math.abs(bar.time - timestamp);
+        if (diff < closestDiff) {
+            closestBar = bar;
+            closestDiff = diff;
+        }
+    }
+
+    return closestBar;
+}
+
+    function updatePrices() {
+    if (!isPaused) {
+        // Find the closest bar to the current lastUpdateTime
+        let closestBar = findClosestBar(lastUpdateTime);
+
+        if (closestBar) {
             // Update lastUpdateTime to the timestamp of the found bar
             lastUpdateTime = closestBar.time;
             // Update the price widget with the closest bar data
-            updatePriceWidget(closestBar); 
-            }
+            updatePriceWidget(closestBar);
+        }
 
         if (priceWidgetVisible) {
-          toggleWidget('price-widget');
-          toggleWidget('price-widget');
+            toggleWidget('price-widget');
+            toggleWidget('price-widget');
         }
-      }
     }
+}
+    // function updatePrices() {
+    //     if (!isPaused) {
+    //         // Find the closest bar to the current lastUpdateTime
+    //         // const closestBar = findClosestBar(lastUpdateTime);
+    //         let closestBar = null;
+
+    //         if (closestBar) {
+    //         // Update lastUpdateTime to the timestamp of the found bar
+    //         lastUpdateTime = closestBar.time;
+    //         // Update the price widget with the closest bar data
+    //         updatePriceWidget(closestBar); 
+    //         }
+
+    //     if (priceWidgetVisible) {
+    //       toggleWidget('price-widget');
+    //       toggleWidget('price-widget');
+    //     }
+    //   }
+    // }
 
 
     function updatePriceWidget(barData) {

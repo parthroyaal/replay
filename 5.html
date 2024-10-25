@@ -323,14 +323,12 @@ playButton.addEventListener('click', function() {
     if (isPaused) {
         clearInterval(priceUpdateInterval);
     } else {
-        // Simulate pressing Alt + "
-        document.dispatchEvent(new KeyboardEvent('keydown', {
-            key: '"',
-            altKey: true,
-            code: 'Quote',
-            bubbles: true,
-            cancelable: true
-        }));
+        // Reset lastUpdateTime to current time when resuming
+        lastUpdateTime = Date.now();
+        // Immediately update prices
+        updatePrices();
+        // Restart the interval
+        priceUpdateInterval = setInterval(updatePrices, 1000);
     }
 });
 
