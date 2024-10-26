@@ -1,3 +1,6 @@
+
+<!-- bybit
+  -->
 <!DOCTYPE HTML>
 <html lang="en">
 
@@ -435,47 +438,41 @@ function unixToMillis(unixTime) {
     }
 
 
-// fyerv01
-function readCSV(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      const rows = text.split('\n');
-      const headers = rows[0].split(',');
-
-      // Get column indices from headers
-      const timeIndex = headers.indexOf('time');
-      const openIndex = headers.indexOf('open');
-      const highIndex = headers.indexOf('high');
-      const lowIndex = headers.indexOf('low');
-      const closeIndex = headers.indexOf('close');
-      const volumeIndex = headers.indexOf('volume');
-
-      let bars = [];
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].split(',');
-        if (row.length === headers.length) { 
-          bars.push({
-            time: unixToMillis(parseFloat(row[timeIndex])), 
-            open: parseFloat(row[openIndex]),
-            high: parseFloat(row[highIndex]),
-            low: parseFloat(row[lowIndex]),
-            close: parseFloat(row[closeIndex]),
-            volume: parseInt(row[volumeIndex])
-          });
+  
+  // // mongo bybit
+  
+        async function readCSV(file) {
+        const text = await file.text();
+        const rows = text.split('\n');
+        const headers = rows[0].split(',');
+  
+        // Get column indices from headers
+        const timeIndex = headers.indexOf('time');
+        const openIndex = headers.indexOf('open');
+        const highIndex = headers.indexOf('high');
+        const lowIndex = headers.indexOf('low');
+        const closeIndex = headers.indexOf('close');
+        const volumeIndex = headers.indexOf('volume');
+  
+        let bars = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i].split(',');
+            if (row.length === headers.length) { 
+                bars.push({
+                    time: new Date(row[timeIndex]).getTime() , // / 1000, // Convert time to Unix timestamp (seconds)
+                    open: parseFloat(row[openIndex]),
+                    high: parseFloat(row[highIndex]),
+                    low: parseFloat(row[lowIndex]),
+                    close: parseFloat(row[closeIndex]),
+                    volume: parseInt(row[volumeIndex])
+                });
+            }
         }
-      }
+        return bars;
+        }
+  
+  
 
-      // Resolve the promise with the parsed bars
-      resolve(bars);
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsText(file);
-  });
-}
-
-    
 
     const dataArrays = {
       '5S': [],
@@ -787,9 +784,6 @@ function readCSV(file) {
       priceUpdateInterval = setInterval(updatePrices, 1000);
     });
 
-
-
-    
     function createChart(interval) {
       removeExistingChart();
       if (allBars.leftTop.length > 0) {
