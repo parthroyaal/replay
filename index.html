@@ -10,7 +10,8 @@
   <h1>CSV Data Table</h1>
 
   <div id="fetchSupportMessage"></div>
-  <div id="fileLoadError"></div> <input type="file" id="csvFile" accept=".csv">
+  <div id="fileLoadError" style="color: red;"></div> 
+  <input type="file" id="csvFile" accept=".csv">
 
   <div id="tableContainer"></div>
 
@@ -18,7 +19,7 @@
     const csvFile = document.getElementById('csvFile');
     const tableContainer = document.getElementById('tableContainer');
     const fetchSupportMessage = document.getElementById('fetchSupportMessage');
-    const fileLoadError = document.getElementById('fileLoadError'); // New element for errors
+    const fileLoadError = document.getElementById('fileLoadError'); 
     const maxRowsToDisplay = 10;
 
     // Check if fetch is supported
@@ -41,7 +42,7 @@
           })
           .catch(error => {
             console.error('Error reading CSV file:', error);
-            fileLoadError.textContent = `Error loading CSV data: ${error.message}`; // Display error in the new element
+            fileLoadError.textContent = `Error loading CSV data: ${error.message}`; 
           });
       };
       fileReader.readAsDataURL(file);
