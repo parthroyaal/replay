@@ -9,6 +9,8 @@
 
   <h1>CSV Data Table</h1>
 
+  <div id="fetchSupportMessage"></div>
+
   <input type="file" id="csvFile" accept=".csv">
 
   <div id="tableContainer"></div>
@@ -16,20 +18,20 @@
   <script>
     const csvFile = document.getElementById('csvFile');
     const tableContainer = document.getElementById('tableContainer');
+    const fetchSupportMessage = document.getElementById('fetchSupportMessage');
     const maxRowsToDisplay = 10;
+
+    // Check if fetch is supported
+    if (window.fetch) {
+      fetchSupportMessage.textContent = "Fetch API is supported! 🎉";
+    } else {
+      fetchSupportMessage.textContent = "Fetch API is not supported. 😥";
+      csvFile.disabled = true; // Disable the file input
+    }
 
     csvFile.addEventListener('change', (event) => {
       const file = event.target.files[0];
 
-      // Read the file as text using the fetch API
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const csvData = e.target.result;
-        // ... rest of your processing code ...
-      }
-      reader.readAsText(file);
-
-      // Using the fetch API (more robust across browsers)
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
         fetch(e.target.result)
@@ -65,6 +67,7 @@
           })
           .catch(error => {
             console.error('Error reading CSV file:', error);
+            tableContainer.innerHTML = 'Error loading CSV data. 😞'; // Show error message in table container
           });
       };
       fileReader.readAsDataURL(file);
