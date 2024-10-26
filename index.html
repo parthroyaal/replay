@@ -1,90 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CSV Reader</title>
+    <title>CSV Direct Loader</title>
 </head>
 <body>
-
-  
-  <h1>1</h1>
-    <!-- Simple form with no validation -->
-    <form name="upload">
-        <input type="file" name="file" id="file" onclick="this.value=''">
-    </form>
-
-    <!-- Alternative text input -->
-    <p>Or paste CSV content here:</p>
-    <textarea rows="5" cols="50" id="csvText" 
-        onchange="showCSV(this.value)" 
-        placeholder="Paste CSV content here"></textarea>
-
-    <div id="result"></div>
+    <!-- Multiple ways to load file -->
+    <input type="file" id="csvfile" accept=".csv" onChange="loadCSV(this)">
+    <br><br>
+    <div id="output"></div>
 
     <script>
-        // Global variables for broader compatibility
-        var fileInput = document.getElementById('file');
-        var result = document.getElementById('result');
-        var csvText = document.getElementById('csvText');
-
-        // Simple event handler
-        if (fileInput.addEventListener) {
-            fileInput.addEventListener('change', loadFile, false);
-        } else if (fileInput.attachEvent) {
-            fileInput.attachEvent('onchange', loadFile);
-        }
-
-        // Basic file loading
-        function loadFile() {
+        function loadCSV(input) {
+            var file = input.files[0];
+            
+            // Method 1: Using createObjectURL
             try {
-                var file = fileInput.files[0];
-                var reader = {};
-                
-                // Try multiple methods to read file
-                if (window.FileReader) {
-                    reader = new FileReader();
-                    reader.onload = function(e) {
-                        showCSV(e.target.result);
-                    };
-                    reader.readAsText(file);
-                } else {
-                    // If FileReader not available, show message to use textarea
-                    result.innerHTML = 'Please use the text box below to paste your CSV content';
-                }
+                var objectUrl = window.URL.createObjectURL(file);
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', objectUrl);
+                xhr.onload = function() {
+                    displayData(xhr.responseText);
+                    window.URL.revokeObjectURL(objectUrl);
+                };
+                xhr.send();
+                return;
             } catch(e) {
-                result.innerHTML = 'Error reading file. Please try pasting content in the text box below.';
+                console.log('Method 1 failed, trying method 2');
+            }
+
+            // Method 2: Direct XHR
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', file);
+                xhr.onload = function() {
+                    displayData(xhr.responseText);
+                };
+                xhr.send();
+                return;
+            } catch(e) {
+                console.log('Method 2 failed, trying method 3');
+            }
+
+            // Method 3: Basic FileReader
+            try {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    displayData(e.target.result);
+                };
+                reader.readAsText(file);
+                return;
+            } catch(e) {
+                console.log('Method 3 failed, trying method 4');
+            }
+
+            // Method 4: Old-style FileReader
+            try {
+                var reader = new FileReader();
+                reader.onloadend = function(e) {
+                    displayData(this.result);
+                };
+                reader.readAsText(file);
+            } catch(e) {
+                console.log('All methods failed');
+                document.getElementById('output').innerHTML = 'Unable to load file directly. Browser may not support file loading.';
             }
         }
 
-        // Display CSV content
-        function showCSV(content) {
+        function displayData(csv) {
             try {
-                var lines = content.split(/\r\n|\n|\r/);
-                var output = '';
+                var rows = csv.split('\n');
+                var html = '<table border="1">';
                 
-                // Super simple table creation
-                output += '<table border="1" cellpadding="5">';
-                
-                for (var i = 0; i < lines.length; i++) {
-                    if (lines[i].trim()) {
-                        output += '<tr>';
-                        var cells = lines[i].split(',');
-                        
-                        for (var j = 0; j < cells.length; j++) {
-                            output += '<td>' + 
-                                     cells[j].replace(/</g, '&lt;')
-                                            .replace(/>/g, '&gt;')
-                                     + '</td>';
+                for(var i = 0; i < rows.length; i++) {
+                    if(rows[i].trim()) {
+                        html += '<tr>';
+                        var cells = rows[i].split(',');
+                        for(var j = 0; j < cells.length; j++) {
+                            html += '<td>' + cells[j].trim() + '</td>';
                         }
-                        
-                        output += '</tr>';
+                        html += '</tr>';
                     }
                 }
+                html += '</table>';
                 
-                output += '</table>';
-                result.innerHTML = output;
-                
+                document.getElementById('output').innerHTML = html;
             } catch(e) {
-                result.innerHTML = 'Error showing CSV. Please check your file format.';
+                document.getElementById('output').innerHTML = 'Error displaying data: ' + e.message;
             }
         }
     </script>
