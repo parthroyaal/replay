@@ -4,69 +4,87 @@
     <title>CSV Reader</title>
 </head>
 <body>
-    <input type="file" accept=".csv,.txt" id="csvFile" onclick="this.value=null;">
+
+  
+  <h1>1</h1>
+    <!-- Simple form with no validation -->
+    <form name="upload">
+        <input type="file" name="file" id="file" onclick="this.value=''">
+    </form>
+
+    <!-- Alternative text input -->
+    <p>Or paste CSV content here:</p>
+    <textarea rows="5" cols="50" id="csvText" 
+        onchange="showCSV(this.value)" 
+        placeholder="Paste CSV content here"></textarea>
+
     <div id="result"></div>
-    <h1>1 </h1>
 
     <script>
-      
-         // Get input element
-        var input = document.getElementById('csvFile');
+        // Global variables for broader compatibility
+        var fileInput = document.getElementById('file');
         var result = document.getElementById('result');
+        var csvText = document.getElementById('csvText');
 
-        // Add event listener
-        input.addEventListener('change', function() {
-            var file = input.files[0];
-            
-            // Using XMLHttpRequest instead of FileReader or Fetch
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', URL.createObjectURL(file), true);
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    displayCSV(xhr.responseText);
-                } else {
-                    result.innerHTML = 'Error loading file';
-                }
-            };
-            xhr.onerror = function() {
-                // If XMLHttpRequest fails, try FileReader as backup
-                var backup = new FileReader();
-                backup.onload = function(e) {
-                    displayCSV(e.target.result);
-                };
-                backup.readAsText(file);
-            };
-            try {
-                xhr.send();
-            } catch(e) {
-                // If send fails, try FileReader
-                var backup = new FileReader();
-                backup.onload = function(e) {
-                    displayCSV(e.target.result);
-                };
-                backup.readAsText(file);
-            }
-        });
+        // Simple event handler
+        if (fileInput.addEventListener) {
+            fileInput.addEventListener('change', loadFile, false);
+        } else if (fileInput.attachEvent) {
+            fileInput.attachEvent('onchange', loadFile);
+        }
 
-        function displayCSV(content) {
+        // Basic file loading
+        function loadFile() {
             try {
-                var table = '<table border="1">';
-                var rows = content.split('\n');
+                var file = fileInput.files[0];
+                var reader = {};
                 
-                for (var i = 0; i < rows.length; i++) {
-                    if (rows[i].trim()) {
-                        table += '<tr>';
-                        var cells = rows[i].split(',');
+                // Try multiple methods to read file
+                if (window.FileReader) {
+                    reader = new FileReader();
+                    reader.onload = function(e) {
+                        showCSV(e.target.result);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    // If FileReader not available, show message to use textarea
+                    result.innerHTML = 'Please use the text box below to paste your CSV content';
+                }
+            } catch(e) {
+                result.innerHTML = 'Error reading file. Please try pasting content in the text box below.';
+            }
+        }
+
+        // Display CSV content
+        function showCSV(content) {
+            try {
+                var lines = content.split(/\r\n|\n|\r/);
+                var output = '';
+                
+                // Super simple table creation
+                output += '<table border="1" cellpadding="5">';
+                
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        output += '<tr>';
+                        var cells = lines[i].split(',');
+                        
                         for (var j = 0; j < cells.length; j++) {
-                            table += '<td>' + cells[j].trim() + '</td>';
+                            output += '<td>' + 
+                                     cells[j].replace(/</g, '&lt;')
+                                            .replace(/>/g, '&gt;')
+                                     + '</td>';
                         }
-                        table += '</tr>';
+                        
+                        output += '</tr>';
                     }
                 }
-                table += '</table>';
-                result.innerHTML = table;
+                
+                output += '</table>';
+                result.innerHTML = output;
+                
             } catch(e) {
-                result.innerHTML = 'Error processing CSV';
+                result.innerHTML = 'Error showing CSV. Please check your file format.';
             }
         }
     </script>
