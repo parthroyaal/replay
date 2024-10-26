@@ -1,36 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CSV Upload</title>
+    <title>CSV Reader</title>
 </head>
 <body>
-    <input type="file" id="fileInput" accept=".csv">
-    <div id="output"></div>
+    <input type="file" accept=".csv,.txt" id="csvFile" onclick="this.value=null;">
+    <div id="result"></div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
+        // Get input element
+        var input = document.getElementById('csvFile');
+        var result = document.getElementById('result');
 
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const data = text.split('\n').map(row => row.split(','));
-                
-                const table = document.createElement('table');
-                data.forEach(row => {
-                    const tr = table.insertRow();
-                    row.forEach(cell => {
-                        const td = tr.insertCell();
-                        td.textContent = cell;
-                    });
-                });
-                
-                document.getElementById('output').innerHTML = '';
-                document.getElementById('output').appendChild(table);
+        // Add event listener
+        input.addEventListener('change', function() {
+            var file = input.files[0];
+            
+            // Using XMLHttpRequest instead of FileReader or Fetch
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', URL.createObjectURL(file), true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    displayCSV(xhr.responseText);
+                } else {
+                    result.innerHTML = 'Error loading file';
+                }
             };
-
-            reader.readAsText(file);
+            xhr.onerror = function() {
+                // If XMLHttpRequest fails, try FileReader as backup
+                var backup = new FileReader();
+                backup.onload = function(e) {
+                    displayCSV(e.target.result);
+                };
+                backup.readAsText(file);
+            };
+            try {
+                xhr.send();
+            } catch(e) {
+                // If send fails, try FileReader
+                var backup = new FileReader();
+                backup.onload = function(e) {
+                    displayCSV(e.target.result);
+                };
+                backup.readAsText(file);
+            }
         });
+
+        function displayCSV(content) {
+            try {
+                var table = '<table border="1">';
+                var rows = content.split('\n');
+                
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i].trim()) {
+                        table += '<tr>';
+                        var cells = rows[i].split(',');
+                        for (var j = 0; j < cells.length; j++) {
+                            table += '<td>' + cells[j].trim() + '</td>';
+                        }
+                        table += '</tr>';
+                    }
+                }
+                table += '</table>';
+                result.innerHTML = table;
+            } catch(e) {
+                result.innerHTML = 'Error processing CSV';
+            }
+        }
     </script>
 </body>
 </html>
