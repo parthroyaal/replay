@@ -10,7 +10,7 @@
   <h1>CSV Data Table</h1>
 
   <div id="fetchSupportMessage"></div>
-  <div id="fileLoadError" style="color: red;"></div> 
+  <div id="fileLoadLog" style="color: black;"></div> 
   <input type="file" id="csvFile" accept=".csv"> 
 
   <div id="tableContainer"></div>
@@ -19,7 +19,7 @@
     const csvFile = document.getElementById('csvFile');
     const tableContainer = document.getElementById('tableContainer');
     const fetchSupportMessage = document.getElementById('fetchSupportMessage');
-    const fileLoadError = document.getElementById('fileLoadError'); 
+    const fileLoadLog = document.getElementById('fileLoadLog'); 
     const maxRowsToDisplay = 10;
 
     // Check if fetch is supported
@@ -32,13 +32,27 @@
 
     csvFile.addEventListener('change', (event) => {
       const file = event.target.files[0];
-      fileLoadError.textContent = '';
+      fileLoadLog.textContent = ''; 
 
-      // Read the file as text using the fetch API
       const fileReader = new FileReader();
+
+      // 1. Handle File Read Errors
+      fileReader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        fileLoadLog.textContent += `Error reading file: ${error.message}\n`; 
+      };
+
       fileReader.onload = (e) => {
+        console.log('Data URL:', e.target.result); 
+
+        // 2. Handle Fetch Errors
         fetch(e.target.result)
-          .then(response => response.text())
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.text();
+          })
           .then(csvData => {
             const rows = csvData.split('\n');
             const headers = rows[0].split(',');
@@ -67,16 +81,17 @@
 
             tableContainer.innerHTML = '';
             tableContainer.appendChild(table);
+            fileLoadLog.textContent += 'CSV data loaded successfully.\n'; // Success message
           })
           .catch(error => {
             console.error('Error reading CSV file:', error);
-            fileLoadError.textContent = `Error loading CSV data: ${error.message}`; 
+            fileLoadError.textContent += `Error loading CSV data: ${error.message}\n`; 
           });
       };
+      // Correctly read as a data URL from the Blob object
       fileReader.readAsDataURL(file); 
 
-      // Explicitly trigger a click on the file input (for browsers that might need it)
-      csvFile.click();
+      csvFile.click(); 
     });
   </script>
 </body>
