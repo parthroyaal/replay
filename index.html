@@ -21,40 +21,53 @@
     csvFile.addEventListener('change', (event) => {
       const file = event.target.files[0];
 
-      fetch(URL.createObjectURL(file))
-        .then(response => response.text())
-        .then(csvData => {
-          const rows = csvData.split('\n');
-          const headers = rows[0].split(',');
+      // Read the file as text using the fetch API
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const csvData = e.target.result;
+        // ... rest of your processing code ...
+      }
+      reader.readAsText(file);
 
-          const table = document.createElement('table');
-          const headerRow = document.createElement('tr');
+      // Using the fetch API (more robust across browsers)
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        fetch(e.target.result)
+          .then(response => response.text())
+          .then(csvData => {
+            const rows = csvData.split('\n');
+            const headers = rows[0].split(',');
 
-          headers.forEach(header => {
-            const th = document.createElement('th');
-            th.textContent = header;
-            headerRow.appendChild(th);
-          });
-          table.appendChild(headerRow);
+            const table = document.createElement('table');
+            const headerRow = document.createElement('tr');
 
-          for (let i = 1; i <= maxRowsToDisplay && i < rows.length; i++) {
-            const row = rows[i].split(',');
-            const tableRow = document.createElement('tr');
-
-            row.forEach(cell => {
-              const td = document.createElement('td');
-              td.textContent = cell;
-              tableRow.appendChild(td);
+            headers.forEach(header => {
+              const th = document.createElement('th');
+              th.textContent = header;
+              headerRow.appendChild(th);
             });
-            table.appendChild(tableRow);
-          }
+            table.appendChild(headerRow);
 
-          tableContainer.innerHTML = '';
-          tableContainer.appendChild(table);
-        })
-        .catch(error => {
-          console.error('Error reading CSV file:', error);
-        });
+            for (let i = 1; i <= maxRowsToDisplay && i < rows.length; i++) {
+              const row = rows[i].split(',');
+              const tableRow = document.createElement('tr');
+
+              row.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tableRow.appendChild(td);
+              });
+              table.appendChild(tableRow);
+            }
+
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(table);
+          })
+          .catch(error => {
+            console.error('Error reading CSV file:', error);
+          });
+      };
+      fileReader.readAsDataURL(file);
     });
   </script>
 </body>
