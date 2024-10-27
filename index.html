@@ -165,27 +165,33 @@
   <!-- Mwidget -->
 
   <div id="formSection" class="p-4">
-    <h1 class="text-2xl font-bold mb-4">Select CSV File for Chart</h1>
+    <h1 class="text-2xl font-bold mb-4">Select CSV File or Enter URL for Chart</h1>
     <form id="csvForm" class="w-full max-w-lg">
-      <div class="mb-4">
-        <label for="csvFile" class="block text-sm font-medium text-gray-700">CSV Data:</label>
-        <input type="file" id="csvFile" name="csvFile" accept=".csv"
-          class="mt-1 block w-full text-sm text-gray-500
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100">
-      </div>
-      <div class="mb-4">
-        <label for="initialLoadDateInput" class="block text-sm font-medium text-gray-700">Initial Load Date (YYYY-MM-DD
-          HH:MM:SS):</label>
-        <input type="text" id="initialLoadDateInput" name="initialLoadDateInput"
-          placeholder="e.g., 2023-12-31 10:00:00" class="mt-1 block w-full text-sm text-gray-500">
-      </div>
+        <div class="mb-4">
+            <label for="csvFile" class="block text-sm font-medium text-gray-700">CSV File:</label>
+            <input type="file" id="csvFile" name="csvFile" accept=".csv"
+                class="mt-1 block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100">
+        </div>
+        <div class="mb-4">
+            <label for="csvUrl" class="block text-sm font-medium text-gray-700">Or Enter CSV URL:</label>
+            <input type="text" id="csvUrl" name="csvUrl" 
+                placeholder="Enter CSV URL here" 
+                class="mt-1 block w-full text-sm text-gray-500 p-2 border rounded">
+        </div>
+        <div class="mb-4">
+            <label for="initialLoadDateInput" class="block text-sm font-medium text-gray-700">Initial Load Date (YYYY-MM-DD
+                HH:MM:SS):</label>
+            <input type="text" id="initialLoadDateInput" name="initialLoadDateInput"
+                placeholder="e.g., 2023-12-31 10:00:00" class="mt-1 block w-full text-sm text-gray-500">
+        </div>
     </form>
     <button id="loadChart" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Load Chart</button>
-  </div>
+</div>
 
 
   <div id="chartSection">
@@ -436,35 +442,53 @@ function unixToMillis(unixTime) {
 
 
 // fyerv01
-    async function readCSV(file) {
-      const text = await file.text();
-      const rows = text.split('\n');
-      const headers = rows[0].split(',');
+async function readCSV(fileOrUrl, isUrl = false) {
+    let text;
+    
+    try {
+        if (isUrl) {
+            // Fetch data from URL
+            const response = await fetch(fileOrUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            text = await response.text();
+        } else {
+            // Read from file
+            text = await fileOrUrl.text();
+        }
 
-      // Get column indices from headers
-      const timeIndex = headers.indexOf('time');
-      const openIndex = headers.indexOf('open');
-      const highIndex = headers.indexOf('high');
-      const lowIndex = headers.indexOf('low');
-      const closeIndex = headers.indexOf('close');
-      const volumeIndex = headers.indexOf('volume');
+        const rows = text.split('\n');
+        const headers = rows[0].split(',');
 
-      let bars = [];
-      for (let i = 1; i < rows.length; i++) {
-          const row = rows[i].split(',');
-          if (row.length === headers.length) { 
-              bars.push({
-            time: unixToMillis(parseFloat(row[timeIndex])), 
-            open: parseFloat(row[openIndex]),
-                high: parseFloat(row[highIndex]),
-                low: parseFloat(row[lowIndex]),
-                close: parseFloat(row[closeIndex]),
-                volume: parseInt(row[volumeIndex])
-            });
-          }
-      }
-      return bars;
-      }
+        // Get column indices from headers
+        const timeIndex = headers.indexOf('time');
+        const openIndex = headers.indexOf('open');
+        const highIndex = headers.indexOf('high');
+        const lowIndex = headers.indexOf('low');
+        const closeIndex = headers.indexOf('close');
+        const volumeIndex = headers.indexOf('volume');
+
+        let bars = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i].split(',');
+            if (row.length === headers.length) {
+                bars.push({
+                    time: unixToMillis(parseFloat(row[timeIndex])),
+                    open: parseFloat(row[openIndex]),
+                    high: parseFloat(row[highIndex]),
+                    low: parseFloat(row[lowIndex]),
+                    close: parseFloat(row[closeIndex]),
+                    volume: parseInt(row[volumeIndex])
+                });
+            }
+        }
+        return bars;
+    } catch (error) {
+        console.error('Error reading CSV:', error);
+        throw error;
+    }
+}
 
 
 
@@ -743,41 +767,57 @@ function unixToMillis(unixTime) {
     let currentInterval = '5S';
 
     document.getElementById('loadChart').addEventListener('click', async function () {
-      const csvFile = document.getElementById('csvFile').files[0];
-      const initialLoadDateInput = document.getElementById('initialLoadDateInput').value;
+    const csvFile = document.getElementById('csvFile').files[0];
+    const csvUrl = document.getElementById('csvUrl').value;
+    const initialLoadDateInput = document.getElementById('initialLoadDateInput').value;
 
-      if (csvFile) {
-        allBars.leftTop = await readCSV(csvFile);
+    try {
+        // Load data either from file or URL
+        if (csvUrl) {
+            // If URL is provided, use it
+            allBars.leftTop = await readCSV(csvUrl, true);
+        } else if (csvFile) {
+            // If file is provided, use it
+            allBars.leftTop = await readCSV(csvFile, false);
+        } else {
+            throw new Error('Please provide either a CSV file or URL');
+        }
 
         if (allBars.leftTop.length > 0) {
-          // Filter data based on initialLoadDate
-          if (initialLoadDateInput) {
-            const initialLoadDate = new Date(initialLoadDateInput).getTime();
-            historicalData = allBars.leftTop.filter(bar => bar.time < initialLoadDate);
-            const streamingData = allBars.leftTop.filter(bar => bar.time >= initialLoadDate);
-            allBars.leftTop = streamingData;
-          } else {
-            historicalData = []; // No initial data if date not provided
-          }
+            // Filter data based on initialLoadDate
+            if (initialLoadDateInput) {
+                const initialLoadDate = new Date(initialLoadDateInput).getTime();
+                historicalData = allBars.leftTop.filter(bar => bar.time < initialLoadDate);
+                const streamingData = allBars.leftTop.filter(bar => bar.time >= initialLoadDate);
+                allBars.leftTop = streamingData;
+            } else {
+                historicalData = []; // No initial data if date not provided
+            }
 
-          // Resample historical data for all timeframes
-          for (let timeframe in dataArrays) {
-            dataArrays[timeframe] = resampleData(historicalData, timeframe);
-          }
+            // Resample historical data for all timeframes
+            for (let timeframe in dataArrays) {
+                dataArrays[timeframe] = resampleData(historicalData, timeframe);
+            }
 
-          createChart(currentInterval);
-          startStreaming(allBars);
+            createChart(currentInterval);
+            startStreaming(allBars);
+
+            // Hide/show sections
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('chartSection').style.display = 'block';
+            document.getElementById('priceTableContainer').style.display = 'block';
+            document.getElementById('tradeLogContainer').style.display = 'block';
+            
+            // Start price updates
+            priceUpdateInterval = setInterval(updatePrices, 1000);
+        } else {
+            throw new Error('No data found in the CSV');
         }
-      }
-
-      document.getElementById('formSection').style.display = 'none';
-      document.getElementById('chartSection').style.display = 'block';
-      document.getElementById('priceTableContainer').style.display = 'block';
-      document.getElementById('tradeLogContainer').style.display = 'block';
-      // mongo
-      priceUpdateInterval = setInterval(updatePrices, 1000);
-    });
-
+    } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Error loading data: ' + error.message);
+    }
+});
 
 
     
