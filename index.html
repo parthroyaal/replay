@@ -415,9 +415,15 @@ flattenButton.addEventListener('click', function() {
 
 function updateCumulativeProfitDisplay(tradeProfitPercentage, cumulativePercentageChange) {
     cumulativeProfitDisplay.textContent = 
-        `Profit:  
-         (Trade Change: ${tradeProfitPercentage}%, Cumulative Change: ${cumulativePercentageChange.toFixed(2)}%)`;
+        `Pofit: ${cumulativePercentageChange.toFixed(2)}%)`;
 }
+
+
+// function updateCumulativeProfitDisplay(tradeProfitPercentage, cumulativePercentageChange) {
+//     cumulativeProfitDisplay.textContent = 
+//         `Profit:  
+//          (Trade Change: ${tradeProfitPercentage}%, Cumulative Change: ${cumulativePercentageChange.toFixed(2)}%)`;
+// }
 
 
  
