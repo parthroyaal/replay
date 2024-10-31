@@ -863,11 +863,6 @@ async function readCSV(fileOrUrl, isUrl = false) {
       // mongo
 
       widget.onChartReady(() => {
-        // Add RSI
-        widget.chart().createStudy('Relative Strength Index', false, false, {
-          length: 14,
-        });
-
         // Add MACD
         widget.chart().createStudy('MACD', false, false, {
           fast_length: 12,

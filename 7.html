@@ -857,10 +857,7 @@ async function readCSV(fileOrUrl, isUrl = false) {
       // mongo
 
       widget.onChartReady(() => {
-        // Add RSI
-        widget.chart().createStudy('Relative Strength Index', false, false, {
-          length: 14,
-        });
+
 
         // Add MACD
         widget.chart().createStudy('MACD', false, false, {
@@ -1207,5 +1204,5 @@ function addTradeLog(entryType, entryPrice, currentTime) {
 </html>
 
 <!-- 
-2024-10-29 09:15:00
+2024-10-03 09:15:00
   -->
